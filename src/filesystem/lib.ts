@@ -97,20 +97,30 @@ export async function validatePath(requestedPath: string): Promise<string> {
     }
     return realPath;
   } catch (error) {
-    // Security: For new files that don't exist yet, verify parent directory
-    // This ensures we can't create files in unauthorized locations
+    // Security: For new files or directories that don't exist yet, verify the closest existing parent directory
+    // This ensures we can't create files/directories in unauthorized locations, even if parents don't exist
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      const parentDir = path.dirname(absolute);
-      try {
-        const realParentPath = await fs.realpath(parentDir);
-        const normalizedParent = normalizePath(realParentPath);
-        if (!isPathWithinAllowedDirectories(normalizedParent, allowedDirectories)) {
-          throw new Error(`Access denied - parent directory outside allowed directories: ${realParentPath} not in ${allowedDirectories.join(', ')}`);
+      let currentDir = absolute;
+      while (currentDir !== path.dirname(currentDir)) {
+        currentDir = path.dirname(currentDir);
+        try {
+          const realParentPath = await fs.realpath(currentDir);
+          const normalizedParent = normalizePath(realParentPath);
+          if (!isPathWithinAllowedDirectories(normalizedParent, allowedDirectories)) {
+            throw new Error(`Access denied - parent directory resolves to outside allowed directories: ${realParentPath} not in ${allowedDirectories.join(', ')}`);
+          }
+          // Found an existing ancestor that is allowed.
+          // Since the final target path is also validated as allowed (string-wise),
+          // and intermediate components don't exist, this is safe.
+          return absolute;
+        } catch (parentError) {
+          if ((parentError as NodeJS.ErrnoException).code === 'ENOENT') {
+            continue;
+          }
+          throw parentError;
         }
-        return absolute;
-      } catch {
-        throw new Error(`Parent directory does not exist: ${parentDir}`);
       }
+      throw new Error(`Parent directory does not exist and no allowed ancestor found for: ${absolute}`);
     }
     throw error;
   }
@@ -136,6 +146,9 @@ export async function readFileContent(filePath: string, encoding: string = 'utf-
 }
 
 export async function writeFileContent(filePath: string, content: string): Promise<void> {
+  // Ensure parent directory exists (recursive creation)
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+
   try {
     // Security: 'wx' flag ensures exclusive creation - fails if file/symlink exists,
     // preventing writes through pre-existing symlinks

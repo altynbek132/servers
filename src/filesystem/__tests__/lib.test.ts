@@ -188,8 +188,9 @@ describe('Lib Functions', () => {
         expect(result).toBe(path.resolve(newFilePath));
       });
 
-      it('rejects when parent directory does not exist', async () => {
+      it('succeeds when parent directory does not exist but ancestor is allowed', async () => {
         const newFilePath = process.platform === 'win32' ? 'C:\\Users\\test\\nonexistent\\newfile.txt' : '/home/user/nonexistent/newfile.txt';
+        const ancestorPath = process.platform === 'win32' ? 'C:\\Users\\test' : '/home/user';
         
         // Create errors with the ENOENT code
         const enoentError1 = new Error('ENOENT') as NodeJS.ErrnoException;
@@ -198,11 +199,20 @@ describe('Lib Functions', () => {
         enoentError2.code = 'ENOENT';
         
         mockFs.realpath
-          .mockRejectedValueOnce(enoentError1)
-          .mockRejectedValueOnce(enoentError2);
+          .mockRejectedValueOnce(enoentError1) // for newfile.txt
+          .mockRejectedValueOnce(enoentError2) // for nonexistent/
+          .mockResolvedValueOnce(ancestorPath); // for Users/test or /home/user
         
+        const result = await validatePath(newFilePath);
+        expect(result).toBe(path.resolve(newFilePath));
+      });
+      
+      it('rejects when no ancestor is allowed', async () => {
+        const newFilePath = '/unauthorized/nonexistent/newfile.txt';
+        
+        // This will be caught by the string-based check first if allowedDirs doesn't include /unauthorized
         await expect(validatePath(newFilePath))
-          .rejects.toThrow('Parent directory does not exist');
+          .rejects.toThrow('Access denied - path outside allowed directories');
       });
     });
   });
@@ -277,11 +287,13 @@ describe('Lib Functions', () => {
     });
 
     describe('writeFileContent', () => {
-      it('writes file content', async () => {
+      it('writes file content and creates directories', async () => {
         mockFs.writeFile.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValueOnce(undefined);
         
         await writeFileContent('/test/file.txt', 'new content');
         
+        expect(mockFs.mkdir).toHaveBeenCalledWith('/test', { recursive: true });
         expect(mockFs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'new content', { encoding: "utf-8", flag: 'wx' });
       });
     });
@@ -400,6 +412,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         const result = await applyFileEdits('/test/file.txt', edits, false);
         
@@ -434,6 +447,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         await applyFileEdits('/test/file.txt', edits, false);
         
@@ -456,6 +470,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         await applyFileEdits('/test/file.txt', edits, false);
         
@@ -490,6 +505,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         await applyFileEdits('/test/file.js', edits, false);
         
@@ -515,6 +531,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         await applyFileEdits('/test/file.js', edits, false);
         
@@ -537,6 +554,7 @@ describe('Lib Functions', () => {
         ];
         
         mockFs.rename.mockResolvedValueOnce(undefined);
+        mockFs.mkdir.mockResolvedValue(undefined);
         
         await applyFileEdits('/test/file.txt', edits, false);
         
