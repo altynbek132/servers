@@ -6,10 +6,10 @@
   "mcpName": "io.github.modelcontextprotocol/server-filesystem",
   "author": "Anthropic, PBC (https://anthropic.com)",
   "homepage": "https://modelcontextprotocol.io",
-  "bugs": "https://github.com/modelcontextprotocol/servers/issues",
+  "bugs": "https://github.com/altynbek132/servers/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/modelcontextprotocol/servers.git"
+    "url": "https://github.com/altynbek132/servers.git"
   },
   "type": "module",
   "bin": {
