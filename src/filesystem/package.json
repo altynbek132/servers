@@ -1,11 +1,11 @@
 {
-  "name": "@modelcontextprotocol/server-filesystem",
+  "name": "@altynbek132/server-filesystem",
   "version": "0.6.3",
   "description": "MCP server for filesystem access",
   "license": "MIT",
-  "mcpName": "io.github.modelcontextprotocol/server-filesystem",
+  "mcpName": "io.github.altynbek132/server-filesystem",
   "author": "Anthropic, PBC (https://anthropic.com)",
-  "homepage": "https://modelcontextprotocol.io",
+  "homepage": "https://altynbek132.io",
   "bugs": "https://github.com/altynbek132/servers/issues",
   "repository": {
     "type": "git",

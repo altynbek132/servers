@@ -1,15 +1,15 @@
 {
-  "name": "@modelcontextprotocol/server-everything",
+  "name": "@altynbek132/server-everything",
   "version": "2.0.0",
   "description": "MCP server that exercises all the features of the MCP protocol",
   "license": "MIT",
-  "mcpName": "io.github.modelcontextprotocol/server-everything",
+  "mcpName": "io.github.altynbek132/server-everything",
   "author": "Anthropic, PBC (https://anthropic.com)",
-  "homepage": "https://modelcontextprotocol.io",
-  "bugs": "https://github.com/modelcontextprotocol/servers/issues",
+  "homepage": "https://altynbek132.io",
+  "bugs": "https://github.com/altynbek132/servers/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/modelcontextprotocol/servers.git"
+    "url": "https://github.com/altynbek132/servers.git"
   },
   "type": "module",
   "bin": {
